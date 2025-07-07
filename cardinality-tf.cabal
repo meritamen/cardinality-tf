@@ -21,7 +21,7 @@ library
     other-modules:    Cardinality.Internal
                     , Cardinality.TH
     build-depends:    base >=4.17.2.0 && < 5
-                    , template-haskell >=2.20.0.0
+                    , template-haskell >=2.19.0.0
     hs-source-dirs:   src
     default-language: Haskell2010
 
