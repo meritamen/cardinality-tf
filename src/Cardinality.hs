@@ -25,59 +25,86 @@ import Data.Kind
 import GHC.Generics
 import GHC.TypeLits
 
-data Cardinality = FiniteCardinality Nat | InfiniteCardinality
+data Cardinality = Finite Nat | Infinite
 
 type family CardinalityAdd (a :: Cardinality) (b :: Cardinality) :: Cardinality where
-  CardinalityAdd (FiniteCardinality n) (FiniteCardinality m) = FiniteCardinality (n + m)
-  CardinalityAdd _ _ = InfiniteCardinality
+  CardinalityAdd (Finite n) (Finite m) = Finite (n + m)
+  CardinalityAdd _ _ = Infinite
+
+type (|+|) (a :: Cardinality) (b :: Cardinality) = CardinalityAdd a b
+
+infixl 6 |+|
+
+type family CardinalitySubstract (a :: Cardinality) (b :: Cardinality) :: Cardinality where
+  CardinalitySubstract (Finite n) (Finite m) = Finite (n - m)
+  CardinalitySubstract Infinite _ = Infinite
+
+type (|-|) (a :: Cardinality) (b :: Cardinality) = CardinalitySubstract a b
+
+infixl 6 |-|
 
 type family CardinalityMultiply (a :: Cardinality) (b :: Cardinality) :: Cardinality where
-  CardinalityMultiply (FiniteCardinality 0) _ = FiniteCardinality 0
-  CardinalityMultiply _ (FiniteCardinality 0)  = FiniteCardinality 0
-  CardinalityMultiply (FiniteCardinality n) (FiniteCardinality m) = FiniteCardinality (n GHC.TypeLits.* m)
-  CardinalityMultiply _ _ = InfiniteCardinality
+  CardinalityMultiply (Finite 0) _ = Finite 0
+  CardinalityMultiply _ (Finite 0)  = Finite 0
+  CardinalityMultiply (Finite n) (Finite m) = Finite (n GHC.TypeLits.* m)
+  CardinalityMultiply _ _ = Infinite
+
+type (|*|) (a :: Cardinality) (b :: Cardinality) = CardinalityMultiply a b
+
+infixl 7 |*|
+
+type family CardinalityExponentiation (base :: Cardinality) (exponent :: Cardinality) :: Cardinality where
+  CardinalityExponentiation _ (Finite 0) = Finite 1
+  CardinalityExponentiation base exponent = base |*| base |^| (exponent |-| Finite 1)
+
+type (|^|) (base :: Cardinality) (exponent :: Cardinality) = CardinalityExponentiation base exponent
+
+infixr  |^|
 
 class TypeCardinality a where
   type CardinalityOf a :: Cardinality
   type CardinalityOf a = GCardinalityOf (Rep a)
 
 instance TypeCardinality Void where
-  type CardinalityOf Void = FiniteCardinality 0
+  type CardinalityOf Void = Finite 0
 
 instance TypeCardinality () where
-  type CardinalityOf () = FiniteCardinality 1
+  type CardinalityOf () = Finite 1
 
 instance TypeCardinality Bool where
-  type CardinalityOf Bool = FiniteCardinality 2
+  type CardinalityOf Bool = Finite 2
 
 instance TypeCardinality Char where
-  type CardinalityOf Char = FiniteCardinality 1114112
+  type CardinalityOf Char = Finite 1114112
 
 instance TypeCardinality a => TypeCardinality (Maybe a) where
-  type CardinalityOf (Maybe a) = CardinalityAdd (FiniteCardinality 1) (CardinalityOf a)
+  type CardinalityOf (Maybe a) = Finite 1 |+| CardinalityOf a
 
 instance (TypeCardinality a, TypeCardinality b) => TypeCardinality (Either a b) where
-  type CardinalityOf (Either a b) = CardinalityAdd (CardinalityOf a) (CardinalityOf b)
+  type CardinalityOf (Either a b) = CardinalityOf a |+| CardinalityOf b
 
 instance (TypeCardinality a, TypeCardinality b) => TypeCardinality (a, b) where
-  type CardinalityOf (a, b) = CardinalityMultiply (CardinalityOf a) (CardinalityOf b)
+  type CardinalityOf (a, b) = CardinalityOf a |*| CardinalityOf b
 
 instance TypeCardinality a => TypeCardinality [a] where
-  type CardinalityOf [a] = CardinalityIfZero (CardinalityOf a) (FiniteCardinality 1) InfiniteCardinality
+  type CardinalityOf [a] = CardinalityIfZero (CardinalityOf a) (Finite 1) Infinite
 
 type family CardinalityIfZero (c :: Cardinality) (ifZero :: Cardinality) (ifNonZero :: Cardinality) :: Cardinality where
-  CardinalityIfZero (FiniteCardinality 0) ifZero _ = ifZero
+  CardinalityIfZero (Finite 0) ifZero _ = ifZero
   CardinalityIfZero _ _ ifNonZero = ifNonZero
+
+instance (TypeCardinality a, TypeCardinality b) => TypeCardinality (a -> b) where
+  type CardinalityOf (a -> b) = CardinalityOf b |^| CardinalityOf a
 
 type family GCardinalityOf (f :: Type -> Type) :: Cardinality
 
-type instance GCardinalityOf V1 = FiniteCardinality 0
+type instance GCardinalityOf V1 = Finite 0
 
-type instance GCardinalityOf U1 = FiniteCardinality 1
+type instance GCardinalityOf U1 = Finite 1
 
-type instance GCardinalityOf (f :+: g) = CardinalityAdd (GCardinalityOf f) (GCardinalityOf g)
+type instance GCardinalityOf (f :+: g) = GCardinalityOf f |+| GCardinalityOf g
 
-type instance GCardinalityOf (f :*: g) = CardinalityMultiply (GCardinalityOf f) (GCardinalityOf g)
+type instance GCardinalityOf (f :*: g) = GCardinalityOf f |*| GCardinalityOf g
 
 type instance GCardinalityOf (C1 c f) = GCardinalityOf f
 
@@ -90,10 +117,10 @@ type instance GCardinalityOf (Rec0 a) = CardinalityOf a
 class KnownCardinality (c :: Cardinality) where
   cardinalityVal :: proxy c -> Either Integer String
 
-instance KnownNat n => KnownCardinality (FiniteCardinality n) where
+instance KnownNat n => KnownCardinality (Finite n) where
   cardinalityVal _ = Left $ natVal (Proxy @n)
 
-instance KnownCardinality InfiniteCardinality where
+instance KnownCardinality Infinite where
   cardinalityVal _ = Right "infinite"
 
 cardinality :: forall a. KnownCardinality (CardinalityOf a) => Either Integer String
