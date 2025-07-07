@@ -54,6 +54,12 @@ type (|*|) (a :: Cardinality) (b :: Cardinality) = CardinalityMultiply a b
 infixl 7 |*|
 
 type family CardinalityExponentiation (base :: Cardinality) (exponent :: Cardinality) :: Cardinality where
+  CardinalityExponentiation (Finite 0) Infinite = Finite 0
+  CardinalityExponentiation (Finite 1) Infinite = Finite 1
+  CardinalityExponentiation (Finite n) Infinite = Infinite
+  CardinalityExponentiation Infinite (Finite _) = Infinite
+  CardinalityExponentiation Infinite Infinite = Infinite
+  CardinalityExponentiation (Finite n) (Finite 1) = Finite n
   CardinalityExponentiation _ (Finite 0) = Finite 1
   CardinalityExponentiation base exponent = base |*| base |^| (exponent |-| Finite 1)
 
