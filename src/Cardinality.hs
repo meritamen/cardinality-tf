@@ -65,7 +65,7 @@ type family CardinalityExponentiation (base :: Cardinality) (exponent :: Cardina
 
 type (|^|) (base :: Cardinality) (exponent :: Cardinality) = CardinalityExponentiation base exponent
 
-infixr  |^|
+infixr 8 |^|
 
 class TypeCardinality a where
   type CardinalityOf a :: Cardinality
