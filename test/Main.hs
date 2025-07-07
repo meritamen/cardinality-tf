@@ -16,3 +16,5 @@ main = hspec $ do
   describe "cardinality of custom data types" $ do
     it "Color has cardinality 3" $ do
       cardinality @Color `shouldBe` Left 3
+    it "[Color] has cardinality infinity" $ do
+      cardinality @[Color] `shouldBe` Right "infinity"

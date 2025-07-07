@@ -22,43 +22,43 @@ import Data.Kind
 import GHC.Generics
 import GHC.TypeLits
 
-data Cardinality = Finite Nat | Infinite
+data Cardinality = Finity Nat | Infinity
 
 type family Add (a :: Cardinality) (b :: Cardinality) :: Cardinality where
-  Add (Finite n) (Finite m) = Finite (n + m)
-  Add _ _ = Infinite
+  Add (Finity n) (Finity m) = Finity (n + m)
+  Add _ _ = Infinity
 
 type (|+|) (a :: Cardinality) (b :: Cardinality) = Add a b
 
 infixl 6 |+|
 
 type family Substract (a :: Cardinality) (b :: Cardinality) :: Cardinality where
-  Substract (Finite n) (Finite m) = Finite (n - m)
-  Substract Infinite _ = Infinite
+  Substract (Finity n) (Finity m) = Finity (n - m)
+  Substract Infinity _ = Infinity
 
 type (|-|) (a :: Cardinality) (b :: Cardinality) = Substract a b
 
 infixl 6 |-|
 
 type family Multiply (a :: Cardinality) (b :: Cardinality) :: Cardinality where
-  Multiply (Finite 0) _ = Finite 0
-  Multiply _ (Finite 0)  = Finite 0
-  Multiply (Finite n) (Finite m) = Finite (n GHC.TypeLits.* m)
-  Multiply _ _ = Infinite
+  Multiply (Finity 0) _ = Finity 0
+  Multiply _ (Finity 0)  = Finity 0
+  Multiply (Finity n) (Finity m) = Finity (n GHC.TypeLits.* m)
+  Multiply _ _ = Infinity
 
 type (|*|) (a :: Cardinality) (b :: Cardinality) = Multiply a b
 
 infixl 7 |*|
 
 type family Exponent (base :: Cardinality) (exponent :: Cardinality) :: Cardinality where
-  Exponent (Finite 0) Infinite = Finite 0
-  Exponent (Finite 1) Infinite = Finite 1
-  Exponent (Finite n) Infinite = Infinite
-  Exponent Infinite (Finite _) = Infinite
-  Exponent Infinite Infinite = Infinite
-  Exponent (Finite n) (Finite 1) = Finite n
-  Exponent _ (Finite 0) = Finite 1
-  Exponent base exponent = base |*| base |^| (exponent |-| Finite 1)
+  Exponent (Finity 0) Infinity = Finity 0
+  Exponent (Finity 1) Infinity = Finity 1
+  Exponent (Finity n) Infinity = Infinity
+  Exponent Infinity (Finity _) = Infinity
+  Exponent Infinity Infinity = Infinity
+  Exponent (Finity n) (Finity 1) = Finity n
+  Exponent _ (Finity 0) = Finity 1
+  Exponent base exponent = base |*| base |^| (exponent |-| Finity 1)
 
 type (|^|) (base :: Cardinality) (exponent :: Cardinality) = Exponent base exponent
 
@@ -70,9 +70,9 @@ class TypeCardinality a where
 
 type family GCardinalityOf (f :: Type -> Type) :: Cardinality
 
-type instance GCardinalityOf V1 = Finite 0
+type instance GCardinalityOf V1 = Finity 0
 
-type instance GCardinalityOf U1 = Finite 1
+type instance GCardinalityOf U1 = Finity 1
 
 type instance GCardinalityOf (f :+: g) = GCardinalityOf f |+| GCardinalityOf g
 
