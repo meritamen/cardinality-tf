@@ -10,12 +10,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module Cardinality
-  ( Cardinality (..)
-  , CardinalityAdd
-  , CardinalityMultiply
-  , TypeCardinality (..)
-  , GCardinalityOf
-  , KnownCardinality (..)
+  ( TypeCardinality (..)
   , cardinality
   ) where
 
