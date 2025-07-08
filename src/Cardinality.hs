@@ -62,11 +62,11 @@ instance (TypeCardinality a, TypeCardinality b) => TypeCardinality (Either a b) 
 $(genTupleInstances 12)
 
 instance TypeCardinality a => TypeCardinality [a] where
-  type CardinalityOf [a] = CardinalityIfZero (CardinalityOf a) (Finity 1) Infinity
+  type CardinalityOf [a] = IfZero (CardinalityOf a) (Finity 1) Infinity
 
-type family CardinalityIfZero (c :: Cardinality) (ifZero :: Cardinality) (ifNonZero :: Cardinality) :: Cardinality where
-  CardinalityIfZero (Finity 0) ifZero _ = ifZero
-  CardinalityIfZero _ _ ifNonZero = ifNonZero
+type family IfZero (c :: Cardinality) (ifZero :: Cardinality) (ifNonZero :: Cardinality) :: Cardinality where
+  IfZero (Finity 0) ifZero _ = ifZero
+  IfZero _ _ ifNonZero = ifNonZero
 
 instance (TypeCardinality a, TypeCardinality b) => TypeCardinality (a -> b) where
   type CardinalityOf (a -> b) = CardinalityOf b |^| CardinalityOf a
