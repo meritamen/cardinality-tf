@@ -16,8 +16,10 @@ module Cardinality
   , cardinality
   ) where
 
+import Data.Int
 import Data.Proxy
 import Data.Void
+import Data.Word
 import GHC.Generics
 import GHC.TypeLits
 
@@ -53,6 +55,30 @@ instance TypeCardinality Double where
 instance TypeCardinality Float where
   type CardinalityOf Float = Finity 4294967296
 
+instance TypeCardinality Int8 where
+  type CardinalityOf Int8 = Finity 256
+
+instance TypeCardinality Int16 where
+  type CardinalityOf Int16 = Finity 65536
+
+instance TypeCardinality Int32 where
+  type CardinalityOf Int32 = Finity 4294967296
+
+instance TypeCardinality Int64 where
+  type CardinalityOf Int64 = Finity 18446744073709551616
+
+instance TypeCardinality Word8 where
+  type CardinalityOf Word8 = Finity 256
+
+instance TypeCardinality Word16 where
+  type CardinalityOf Word16 = Finity 65536
+
+instance TypeCardinality Word32 where
+  type CardinalityOf Word32 = Finity 4294967296
+
+instance TypeCardinality Word64 where
+  type CardinalityOf Word64 = Finity 18446744073709551616
+
 instance TypeCardinality a => TypeCardinality (Maybe a) where
   type CardinalityOf (Maybe a) = Finity 1 |+| CardinalityOf a
 
@@ -67,6 +93,9 @@ instance TypeCardinality a => TypeCardinality [a] where
 type family IfZero (c :: Cardinality) (ifZero :: Cardinality) (ifNonZero :: Cardinality) :: Cardinality where
   IfZero (Finity 0) ifZero _ = ifZero
   IfZero _ _ ifNonZero = ifNonZero
+
+instance TypeCardinality a => TypeCardinality (Proxy a) where
+  type CardinalityOf (Proxy _) = Finity 1
 
 instance (TypeCardinality a, TypeCardinality b) => TypeCardinality (a -> b) where
   type CardinalityOf (a -> b) = CardinalityOf b |^| CardinalityOf a
